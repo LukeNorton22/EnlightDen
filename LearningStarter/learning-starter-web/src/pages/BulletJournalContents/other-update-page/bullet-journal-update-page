@@ -1,0 +1,55 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Button, Input } from "semantic-ui-react";
+import {
+  ApiResponse,
+  BulletJournalEntryGetDTO,
+} from "../../../constants/types";
+import { useRouteMatch, useHistory } from "react-router-dom";
+import { routes } from "../../../routes/config";
+import { FormikBag } from "formik";
+
+
+export const BulletJournalEntryUpdatePage = () => {
+    const history = useHistory();
+
+    let match = useRouteMatch<{id: string}>();
+    const id = match.params.id;
+    const [bulletJournalEntries, setBulletJournalEntries] = useState<BulletJournalEntryGetDTO>();
+
+    useEffect(() => {
+        const fetchBulletJournal = async () => {
+            const response = await axios.get<ApiResponse<BulletJournalEntryGetDTO>>(
+                `/api/BulletJournal/${id}`
+            );
+
+            if(response.data.hasErrors) {
+                console.log(response.data.errors);
+                return;
+            }
+
+            setBulletJournalEntries(response.data.data);
+        }
+        fetchBulletJournal();
+    }, [id]);
+
+    const onSubmit = async(values: BulletJournalEntryGetDTO) => {
+        const response = await axios.put<ApiResponse<BulletJournalEntryGetDTO>>(
+            `/api/BulletJournal/${id}`, 
+            values
+        );
+        
+        if(response.data.hasErrors) {
+            alert(response.data.errors[0].message);
+            return;
+        };
+
+        history.push(routes.bulletJournal.listing);
+    };
+
+ 
+    return;
+
+  
+}
+

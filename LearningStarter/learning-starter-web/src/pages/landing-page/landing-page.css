@@ -1,0 +1,32 @@
+.home-page-container {
+  display: flex;
+  justify-content: center;
+}
+
+.background{
+  background-image: url("../../assets/Listy website background.png");
+  background-repeat:no-repeat;
+  background-position-x: center;
+  background-size: cover;   
+  height: 100vh;
+  margin-top: -5px;
+  border-color: black;
+  border-top: 10px;
+    
+    
+}
+
+.head.ui.header{
+  color:white;
+  font-size: large;
+  padding: 1em;
+}
+
+.btn-border{
+  border-radius: 1em;
+
+}
+
+.black {
+  background-color: black;
+}

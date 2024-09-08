@@ -1,0 +1,23 @@
+.background.ui.segment{
+    background-color: #44444c;
+}
+
+.thing-tsb-white.ui.header{
+    color:white;
+}
+
+.thing-tsb-white.ui.button{
+    background-color: #3e3e46;
+    color: white;
+}
+
+.table-format.ui.table{
+    background-color: #44444c;
+    color: white;
+    border-color: #333338;
+}
+
+.table-header-format.ui.headercell.table{
+    background-color: #44444c;
+    border-color: #333338;
+}
