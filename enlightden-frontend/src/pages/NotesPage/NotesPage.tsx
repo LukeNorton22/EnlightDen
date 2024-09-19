@@ -1,61 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Icon, Container, Grid, Segment, Modal, Form, Input } from 'semantic-ui-react'; // Remove 'Card' from here
+import React, { useState} from 'react';
+import { Button, Icon, Container, Grid, Segment, Modal, Form, Input } from 'semantic-ui-react';
 import { useNavigate } from 'react-router-dom';
-
 
 interface Note {
   id: string;
+  mapId: string;
   title: string;
   content: string;
 }
 
-interface Node {
-  id: number;
-  label: string;
-}
-
-interface Edge {
-  id: number;
-  from: number;
-  to: number;
-}
 
 const NotesPage: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Sample notes with associated mind maps
   const [notes, setNotes] = useState<Note[]>([
     {
       id: '1',
-      title: 'Sociology',
-      content: 'Socialization: Process by which individuals learn and internalize the values, beliefs, and norms of their culture. Key agents include family, school, peers, and media.',
+      mapId: '75f78843-24e7-4651-84e8-f45c09811aa3',
+      title: 'Biology',
+      content: 'Origin of life theories and other topics in biology.',
     },
     {
       id: '2',
+      mapId: '85f78843-24e7-4651-84e8-f45c09811aa4',
       title: 'History',
-      content: 'The Renaissance (14th-17th Century): A cultural movement that began in Italy and spread throughout Europe.',
+      content: 'The Renaissance: A cultural movement that began in Italy and spread throughout Europe.',
     },
   ]);
+  
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [mindMapData, setMindMapData] = useState<{ nodes: Node[]; edges: Edge[] }>({ nodes: [], edges: [] });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    // Generate mind map data based on notes
-    const generateMindMapData = (notes: Note[]) => {
-      const nodes = notes.map((note, index) => ({
-        id: index + 1,
-        label: note.title,
-      }));
-
-      // Example: Create edges between related topics
-      const edges = notes.length > 1 ? [{ id: 1, from: 1, to: 2 }] : [];
-
-      return { nodes, edges };
-    };
-
-    const mindMap = generateMindMapData(notes);
-    setMindMapData(mindMap);
-  }, [notes]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -66,30 +42,29 @@ const NotesPage: React.FC = () => {
   const handleUpload = () => {
     if (!selectedFile) return;
 
-    // For simplicity, we just add the file as a new note.
-    // In a real app, you'd probably send it to a backend and process it there.
     const newNote: Note = {
       id: (notes.length + 1).toString(),
+      mapId: (notes.length + 1).toString(),  // Generate a new mapId for the uploaded file
       title: selectedFile.name,
       content: 'This is the content of the uploaded file.',
     };
 
     setNotes([...notes, newNote]);
-    setSelectedFile(null); // Clear the file input after upload
+    setSelectedFile(null); // Clear file input after upload
   };
 
   const viewNote = (note: Note) => {
     setSelectedNote(note);
-    setIsModalOpen(true); // Open the modal when a note is selected
+    setIsModalOpen(true); // Open modal when a note is selected
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setSelectedNote(null); // Clear the selected note when the modal is closed
+    setSelectedNote(null); // Clear selected note on modal close
   };
 
   const openMindMap = (note: Note) => {
-    navigate('/mindmap', { state: { mindMapData, noteId: note.id } });
+    navigate(`/mindmap/${note.mapId}`, { state: { noteId: note.id } });
   };
 
   return (

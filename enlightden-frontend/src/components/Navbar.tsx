@@ -7,7 +7,7 @@ import { NavLink } from 'react-router-dom';
 const Navbar: React.FC = () => {
   return (
     <Menu inverted>
-      <Menu.Item as={NavLink} to="/" exact>
+      <Menu.Item as={NavLink} to="/dash" exact>
         Dashboard
       </Menu.Item>
       <Menu.Item as={NavLink} to="/notes">
