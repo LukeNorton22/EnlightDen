@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Button, Form, Grid, Header, Message, Segment } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import apiClient from '../../../src/apiClient';
 
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>(''); // Added username state
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLogin, setIsLogin] = useState<boolean>(true); // Toggle between login and sign-up
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   const handleSubmit = async () => {
     setErrorMessage('');
 
     // Simple validation
-    if (!email || !password || (!isLogin && !confirmPassword)) {
+    if (!username || !password || (!isLogin && !confirmPassword)) {
       setErrorMessage('Please fill in all fields.');
       return;
     }
@@ -24,23 +28,22 @@ const AuthPage: React.FC = () => {
 
     // API call depending on login or sign-up
     try {
-      const url = isLogin
-        ? 'http://your-backend-api.com/login'
-        : 'http://your-backend-api.com/signup';
+      const url = isLogin ? '/api/UserAuth/Login' : '/api/UserAuth/Register';
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Construct payload based on login or signup
+      const payload = isLogin
+        ? { username, password } // Login payload
+        : { username, password, email }; // Register payload
 
-      const data = await response.json();
-      if (response.ok) {
-        console.log(isLogin ? 'Login successful' : 'Sign-up successful:', data);
+      const response = await apiClient.post(url, payload); // Use Axios for API call
+
+      if (response.status === 200) {
+        console.log(isLogin ? 'Login successful' : 'Sign-up successful:', response.data);
+        
+        // Redirect to Dashboard after successful login
+        navigate('/dash'); // Adjust the path based on your routes
       } else {
-        setErrorMessage(data.message || 'An error occurred.');
+        setErrorMessage(response.data.message || 'An error occurred.');
       }
     } catch (error) {
       setErrorMessage('An error occurred. Please try again later.');
@@ -55,13 +58,23 @@ const AuthPage: React.FC = () => {
         </Header>
         <Form size="large" onSubmit={handleSubmit}>
           <Segment stacked>
+            {!isLogin && (
+              <Form.Input
+                fluid
+                icon="mail"
+                iconPosition="left"
+                placeholder="E-mail address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
             <Form.Input
               fluid
               icon="user"
               iconPosition="left"
-              placeholder="E-mail address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
             <Form.Input
               fluid
