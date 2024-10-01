@@ -37,14 +37,18 @@ const AuthPage: React.FC = () => {
       const response = await apiClient.post(url, payload);
 
       if (response.status === 200) {
-        console.log(isLogin ? 'Login successful' : 'Sign-up successful:', response.data);
+        if (isLogin) {
+          // Handle successful login
+          const token = response.data.token; // Assuming token is in the response
+          localStorage.setItem('token', token); // Store token in localStorage
 
-        // Assuming the response contains a JWT token for login
-        const token = response.data.token; // Replace with correct field
-        localStorage.setItem('token', token); // Store token in localStorage
-
-        // Redirect to Dashboard after successful login
-        navigate('/dash'); // Adjust the path based on your routes
+          // Redirect to Dashboard after successful login
+          navigate('/dash');
+        } else {
+          // Handle successful sign-up (don't log in, just redirect to login page)
+          setErrorMessage('Registration successful! Please log in.');
+          setIsLogin(true); // Switch back to login mode
+        }
       } else {
         setErrorMessage(response.data.message || 'An error occurred.');
       }
