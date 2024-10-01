@@ -1,23 +1,22 @@
-// src/components/Navbar.tsx
-
+// NavBar.tsx
 import React from 'react';
-import { Menu } from 'semantic-ui-react';
-import { NavLink } from 'react-router-dom';
+import { Menu, Container, Icon } from 'semantic-ui-react';
 
-const Navbar: React.FC = () => {
+const NavBar: React.FC = () => {
   return (
-    <Menu inverted>
-      <Menu.Item as={NavLink} to="/dash" exact>
-        Dashboard
-      </Menu.Item>
-      <Menu.Item as={NavLink} to="/notes">
-        Notes
-      </Menu.Item>
-      {/* <Menu.Item as={NavLink} to="/mindmap">
-        Mind Map
-      </Menu.Item> */}
+    <Menu inverted fixed="top" style={{ backgroundColor: '#2E2E3E', height: '60px', border: 'none' }}>
+      <Container>
+        <Menu.Item header style={{ color: '#00B5D8', fontSize: '1.5em' }}>
+          <Icon name="graduation" />
+          EnlightDen
+        </Menu.Item>
+        <Menu.Item position="right" style={{ color: '#B0B0B0' }}>
+          <Icon name="user" />
+          Profile
+        </Menu.Item>
+      </Container>
     </Menu>
   );
 };
 
-export default Navbar;
+export default NavBar;

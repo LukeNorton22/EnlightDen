@@ -1,63 +1,81 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Network } from 'vis-network/standalone';
-import { Header, Icon, Container } from 'semantic-ui-react';
+import { Header, Loader, Message, Container } from 'semantic-ui-react';
+import apiClient from '../../../src/apiClient'; // Axios instance for API calls
 
-interface MindMapPageProps {
-  getMindMapData: (noteId: string) => { nodes: { id: string | number; label: string }[]; edges: { from: string | number; to: string | number }[] };
+interface MindMapTopic {
+  topic: string;
 }
 
-const MindMapPage: React.FC<MindMapPageProps> = ({ getMindMapData }) => {
-  const mindMapJson = {
-    id: "75f78843-24e7-4651-84e8-f45c09811aa3",
-    name: "Biology", // This will be used as the header and root node label
-    topics: [
-      { topic: "- Genetic Variation" },
-      { topic: "- Overview of Life’s Unity" },
-      { topic: "- Biogenesis" },
-      { topic: "- Diversity of Life" },
-      { topic: "- Growth and Development" },
-      { topic: "- Evolution" },
-      { topic: "- Evolutionary View of Diversity" },
-      { topic: "- Introduction to Biology" },
-      { topic: "- Scientific Method" },
-      { topic: "- Taxonomy" },
-      { topic: "- Artificial Selection" },
-      { topic: "- Reproduction" },
-      { topic: "- Natural Selection" },
-      { topic: "- Cell Theory" },
-      { topic: "- Response to Stimuli" },
-      { topic: "- Homeostasis" },
-      { topic: "- Biodiversity" },
-      { topic: "- Metabolism" },
-      { topic: "- Biological Inquiry" },
-      { topic: "- Adaptation" }
-    ]
-  };
+interface MindMapData {
+  id: string;
+  name: string;
+  topics: MindMapTopic[];
+}
 
+const MindMapPage: React.FC = () => {
+  const { noteId } = useParams<{ noteId: string }>(); // Get noteId from URL params
+  const [mindMapData, setMindMapData] = useState<MindMapData | null>(null); // State for mind map data
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Fetch mind map data by noteId
   useEffect(() => {
-    const container = document.getElementById('mindmap')!;
+    const fetchMindMapData = async () => {
+      try {
+        const response = await apiClient.get(`/api/MindMap/GetMindMapByNoteId/${noteId}`);
+        if (response.status === 200) {
+          setMindMapData(response.data); // Set mind map data
+        } else {
+          setErrorMessage('Failed to load mind map.');
+        }
+      } catch (error) {
+        setErrorMessage('An error occurred while fetching mind map data.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Convert the mind map JSON data into nodes and edges
-    const { nodes, edges } = convertJsonToVisNetworkData(mindMapJson);
+    fetchMindMapData();
+  }, [noteId]);
 
-    if (nodes && edges) {
-      const options = {
-        nodes: {
-          shape: 'dot',
-          size: 16,
-        },
-        edges: {
-          width: 2,
-        },
-      };
-      new Network(container, { nodes, edges }, options);
+  // Initialize and render mind map when data is available
+  useEffect(() => {
+    if (mindMapData) {
+      const container = document.getElementById('mindmap')!;
+
+      // Convert the mind map data into nodes and edges
+      const { nodes, edges } = convertJsonToVisNetworkData(mindMapData);
+
+      if (nodes && edges) {
+        const options = {
+          nodes: {
+            shape: 'dot',
+            size: 16,
+            color: {
+              background: '#00B5D8', // Cyan background for nodes
+              border: '#FFFFFF', // White borders for nodes
+            },
+            font: {
+              color: '#FFFFFF',
+            },
+          },
+          edges: {
+            color: '#00B5D8', // Cyan edges
+            width: 2,
+          },
+          physics: {
+            enabled: true, // Enable physics for a dynamic look
+          },
+        };
+        new Network(container, { nodes, edges }, options);
+      }
     }
-  }, [mindMapJson]); // Adding mindMapJson as a dependency
-
-  //Check to see if the the is really getting from the id.
+  }, [mindMapData]);
 
   // Helper function to convert JSON data to vis-network nodes and edges
-  const convertJsonToVisNetworkData = (data: typeof mindMapJson) => {
+  const convertJsonToVisNetworkData = (data: MindMapData) => {
     const nodes: { id: string; label: string; size: number; color: string }[] = [];
     const edges: { from: string; to: string; weight: number }[] = [];
 
@@ -75,18 +93,33 @@ const MindMapPage: React.FC<MindMapPageProps> = ({ getMindMapData }) => {
     return { nodes, edges };
   };
 
-  return (
-    <Container>
-      {/* Prettier Header */}
-      <Header as="h1" icon textAlign="center" style={{ marginTop: '20px' }}>
-        <Icon name="sitemap" circular />
-        <Header.Content>
-          Mind Map for {mindMapJson.name}
-        </Header.Content>
-      </Header>
+  if (loading) {
+    return <Loader active inline="centered" content="Loading mind map..." />;
+  }
 
-      <div id="mindmap" style={{ height: '500px', marginTop: '20px' }}></div>
-    </Container>
+  if (errorMessage) {
+    return <Message negative>{errorMessage}</Message>;
+  }
+
+  return (
+    <div style={{ backgroundColor: '#1E1E2E', minHeight: '100vh' }}>
+      {/* Header Section */}
+      <Container textAlign="center" style={{ paddingTop: '80px', paddingBottom: '20px' }}>
+        <Header as="h1" style={{ color: '#FFFFFF' }}>
+          Mind Map for: {mindMapData?.name}
+        </Header>
+      </Container>
+
+      {/* Full-screen mind map container */}
+      <div
+        id="mindmap"
+        style={{
+          height: 'calc(100vh - 120px)', // Adjust for header height
+          backgroundColor: '#2E2E3E',
+          padding: '20px',
+        }}
+      ></div>
+    </div>
   );
 };
 

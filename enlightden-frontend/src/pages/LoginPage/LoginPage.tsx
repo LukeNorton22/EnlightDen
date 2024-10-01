@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Button, Form, Grid, Header, Message, Segment } from 'semantic-ui-react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../../../src/apiClient';
 
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
-  const [username, setUsername] = useState<string>(''); // Added username state
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLogin, setIsLogin] = useState<boolean>(true); // Toggle between login and sign-up
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     setErrorMessage('');
@@ -26,7 +26,6 @@ const AuthPage: React.FC = () => {
       return;
     }
 
-    // API call depending on login or sign-up
     try {
       const url = isLogin ? '/api/UserAuth/Login' : '/api/UserAuth/Register';
 
@@ -35,11 +34,15 @@ const AuthPage: React.FC = () => {
         ? { username, password } // Login payload
         : { username, password, email }; // Register payload
 
-      const response = await apiClient.post(url, payload); // Use Axios for API call
+      const response = await apiClient.post(url, payload);
 
       if (response.status === 200) {
         console.log(isLogin ? 'Login successful' : 'Sign-up successful:', response.data);
-        
+
+        // Assuming the response contains a JWT token for login
+        const token = response.data.token; // Replace with correct field
+        localStorage.setItem('token', token); // Store token in localStorage
+
         // Redirect to Dashboard after successful login
         navigate('/dash'); // Adjust the path based on your routes
       } else {
@@ -106,11 +109,7 @@ const AuthPage: React.FC = () => {
 
         <Message>
           {isLogin ? 'New to us?' : 'Already have an account?'}{' '}
-          <Button
-            basic
-            color="teal"
-            onClick={() => setIsLogin(!isLogin)}
-          >
+          <Button basic color="teal" onClick={() => setIsLogin(!isLogin)}>
             {isLogin ? 'Sign Up' : 'Log In'}
           </Button>
         </Message>
