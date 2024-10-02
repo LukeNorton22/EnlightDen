@@ -125,7 +125,8 @@ const StudySessionPage: React.FC = () => {
       </div>
 
       {message && (
-        <Message success style={{ fontSize: '60px', marginTop: '20px' }}>
+        <Message success style={{ fontSize: '60px', marginTop: '20px', backgroundColor: '#2E2E3E',boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+          borderRadius: '10px', }}>
           {message}
         </Message>
       )}
