@@ -48,3 +48,20 @@ body {
 .ui.menu .item:hover {
   color: #00B5D8; /* Cyan hover effect on nav links */
 }
+
+/* Dark mode input styling */
+.ui.form input {
+  background-color: #2E2E3E !important; /* Dark background for input fields */
+  color: #FFFFFF !important; /* White text for inputs */
+  border: 1px solid #555 !important; /* Subtle border to match the dark theme */
+}
+
+.ui.form input::placeholder {
+  color: #B0B0B0 !important; /* Light gray placeholder color */
+}
+
+.ui.form input:focus {
+  background-color: #3E3E4E !important; /* Slightly lighter background on focus */
+  border-color: #00B5D8 !important; /* Cyan border on focus */
+  color: #FFFFFF !important; /* Keep text white */
+}

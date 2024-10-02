@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Form, Grid, Header, Message, Segment } from 'semantic-ui-react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../../src/apiClient';
+import './AuthPage.css'; // Import custom CSS for dark mode
 
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -9,20 +10,24 @@ const AuthPage: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false); // Loading state for login button
   const [isLogin, setIsLogin] = useState<boolean>(true); // Toggle between login and sign-up
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
     setErrorMessage('');
+    setLoading(true); // Set loading to true when login/signup starts
 
     // Simple validation
     if (!username || !password || (!isLogin && !confirmPassword)) {
       setErrorMessage('Please fill in all fields.');
+      setLoading(false); // Stop loading on validation error
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
       setErrorMessage('Passwords do not match.');
+      setLoading(false); // Stop loading on validation error
       return;
     }
 
@@ -54,6 +59,8 @@ const AuthPage: React.FC = () => {
       }
     } catch (error) {
       setErrorMessage('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false); // Stop loading after the request completes
     }
   };
 
@@ -103,7 +110,7 @@ const AuthPage: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             )}
-            <Button color="teal" fluid size="large" type="submit">
+            <Button color="teal" fluid size="large" type="submit" loading={loading} disabled={loading}>
               {isLogin ? 'Login' : 'Sign Up'}
             </Button>
           </Segment>
@@ -111,12 +118,10 @@ const AuthPage: React.FC = () => {
 
         {errorMessage && <Message negative>{errorMessage}</Message>}
 
-        <Message>
-          {isLogin ? 'New to us?' : 'Already have an account?'}{' '}
-          <Button basic color="teal" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Sign Up' : 'Log In'}
-          </Button>
-        </Message>
+        {/* Register button with margin for spacing */}
+        <Button fluid basic color="teal" style={{ marginTop: '1em' }} onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? 'Register a new account' : 'Back to Login'}
+        </Button>
       </Grid.Column>
     </Grid>
   );
