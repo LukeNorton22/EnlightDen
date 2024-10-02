@@ -10,11 +10,11 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#1E1E2E', minHeight: '100vh', paddingTop: '70px' }}> {/* Add paddingTop */}
+    <div style={{ backgroundColor: '#1E1E2E', minHeight: '100vh', paddingTop: '70px' }}> {/* Add paddingTop */} 
       <Container textAlign="center">
         {/* Page Header */}
         <Header as="h1" style={{ color: '#FFFFFF', marginBottom: '0.5em' }}>
-          <Icon name="student" circular inverted color="teal" />
+          <Icon name="graduation" circular inverted style={{ backgroundColor: '#00B5D8', color: '#FFFFFF' }} />
           <Header.Content>Welcome to EnlightDen</Header.Content>
         </Header>
         <Header.Subheader className="text-secondary" style={{ marginBottom: '3em' }}>
