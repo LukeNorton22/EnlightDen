@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import Navbar from './components/Navbar'; // Import the Navbar component
 import UserClassesPage from './pages/ClassPage/ClassPage';
 import CalendarPage from './pages/Calendar/CalendarPage';
+import StudySessionPage from './pages/StudySessionPage/StudySessionPage';
 
 const App: React.FC = () => {
   const getMindMapData = (noteId: string) => {
@@ -45,6 +46,7 @@ const App: React.FC = () => {
           <Route path="/mindmap/:noteId" element={<MindMapPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/classes" element={<UserClassesPage />} />
+          <Route path="/studysession" element={<StudySessionPage />} />
         </Routes>
       </>
     );
