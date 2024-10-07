@@ -10,6 +10,7 @@ import Navbar from './components/Navbar'; // Import the Navbar component
 import UserClassesPage from './pages/ClassPage/ClassPage';
 import CalendarPage from './pages/Calendar/CalendarPage';
 import StudySessionPage from './pages/StudySessionPage/StudySessionPage';
+import TestPage from './pages/TestPage/TestPage';
 
 const App: React.FC = () => {
   const getMindMapData = (noteId: string) => {
@@ -47,6 +48,8 @@ const App: React.FC = () => {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/classes" element={<UserClassesPage />} />
           <Route path="/studysession" element={<StudySessionPage />} />
+          <Route path="/test/:testId" element={<TestPage />} />  {/* Route for the TestPage */}
+
         </Routes>
       </>
     );
