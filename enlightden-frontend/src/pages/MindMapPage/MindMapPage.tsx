@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Network } from 'vis-network/standalone';
-import { Header, Loader, Message, Container, Modal, Button, Input, Dimmer } from 'semantic-ui-react';
+import { Header, Loader, Message, Container, Modal, Button, Input, Dimmer, Form } from 'semantic-ui-react';
 import apiClient from '../../../src/apiClient'; // Axios instance for API calls
 
 interface MindMapTopic {
@@ -13,7 +13,7 @@ interface MindMapData {
   id: string;
   name: string;
   noteId: string;
-  classId: string;  
+  classId: string;
   topics: MindMapTopic[];
 }
 
@@ -24,8 +24,8 @@ const MindMapPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<MindMapTopic | null>(null); // Track selected topic
-  const [modalOpen, setModalOpen] = useState(false); // Modal for test/flashcard generation options
-  const [viewTestModalOpen, setViewTestModalOpen] = useState(false); // Separate modal for viewing test
+  const [modalOpen, setModalOpen] = useState(false); // Modal for test generation options
+  const [viewTestModalOpen, setViewTestModalOpen] = useState(false); // Modal for viewing test
   const [loadingTest, setLoadingTest] = useState(false); // Loading indicator for test generation
   const [testExists, setTestExists] = useState<boolean>(false); // Track if the test exists for the selected topic
   const [testId, setTestId] = useState<string | null>(null); // Track Test ID if it exists
@@ -85,8 +85,8 @@ const MindMapPage: React.FC = () => {
         // Handle click event on nodes (topics)
         network.on('click', function (params) {
           const nodeId = params.nodes[0];
-
           const topic = nodes.find((node) => node.id === nodeId);
+
           if (topic && topic.id) {
             setSelectedTopic({ id: topic.id, topic: topic.label });
             checkIfTestExists(topic.id); // Check if a test exists for this topic
@@ -143,7 +143,7 @@ const MindMapPage: React.FC = () => {
     setLoadingTest(true); // Show loading screen
     try {
       const response = await apiClient.post(`/api/StudyTool/GenerateTestFromTopic`, {
-        classId: mindMapData?.classId,  // Use the classId from the mind map data
+        classId: mindMapData?.classId, // Use the classId from the mind map data
         mindMapId: mindMapData?.id,
         topicId: selectedTopic.id, // Pass the correct GUID for topicId
         name: testName, // Pass user-provided test name
@@ -171,10 +171,6 @@ const MindMapPage: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <Loader active inline="centered" content="Loading mind map..." />;
-  }
-
   if (errorMessage) {
     return <Message negative>{errorMessage}</Message>;
   }
@@ -182,7 +178,7 @@ const MindMapPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#1E1E2E', minHeight: '100vh' }}>
       {/* Header Section */}
-      <Container textAlign="center" style={{ paddingTop: '80px', paddingBottom: '20px' }}>
+      <Container textAlign="center" style={{ paddingTop: '110px', paddingBottom: '20px' }}>
         <Header as="h1" style={{ color: '#FFFFFF' }}>
           Mind Map for: {mindMapData?.name}
         </Header>
@@ -199,30 +195,89 @@ const MindMapPage: React.FC = () => {
       ></div>
 
       {/* Modal for generating test */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} size="small" style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-        <Modal.Header style={{ backgroundColor: '#1E1E2E', color: '#FFFFFF' }}>
-          Generate Test for: {selectedTopic?.topic}
-        </Modal.Header>
-        <Modal.Content style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-          <Input
-            placeholder="Enter test name"
-            value={testName}
-            onChange={(e) => setTestName(e.target.value)}
-            style={{ marginBottom: '1em', backgroundColor: '#1E1E2E', color: '#FFFFFF' }}
-          />
-          <Button primary onClick={generateTest} style={{ backgroundColor: '#00B5D8', color: '#FFFFFF' }}>
-            Generate Test
-          </Button>
-        </Modal.Content>
-      </Modal>
+                <Modal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            size="small"
+            style={{
+              backgroundColor: '#2E2E3E',
+              color: '#FFFFFF',
+              borderRadius: '10px',
+            }}
+          >
+            <Modal.Header
+              style={{
+                backgroundColor: '#1E1E2E',
+                color: '#FFFFFF',
+                borderBottom: '1px solid #00B5D8',
+                borderRadius: '10px 10px 0 0',
+              }}
+            >
+              Generate Test for: {selectedTopic?.topic}
+            </Modal.Header>
+
+            <Modal.Content
+              style={{
+                backgroundColor: '#2E2E3E',
+                color: '#FFFFFF',
+                padding: '20px',
+              }}
+            >
+              <Form>
+                <Form.Field>
+                  <label style={{ color: '#FFFFFF' }}>Test Name</label>
+                  <Input
+                    placeholder="Enter test name"
+                    value={testName}
+                    onChange={(e) => setTestName(e.target.value)}
+                    style={{
+                      backgroundColor: '#1E1E2E',
+                      color: '#FFFFFF',
+                      border: '1px solid #00B5D8',
+                      borderRadius: '5px',
+                      padding: '0px',
+                      outline: 'none',
+                      boxShadow: 'none',
+                      width: '100%',
+                    }}
+                  />
+                </Form.Field>
+              </Form>
+            </Modal.Content>
+
+            <Modal.Actions
+              style={{
+                backgroundColor: '#1E1E2E',
+                padding: '20px',
+                textAlign: 'right',
+                borderRadius: '0 0 10px 10px',
+              }}
+            >
+              <Button
+                primary
+                onClick={generateTest}
+                disabled={!testName} // Disable button if testName is empty
+                style={{
+                  backgroundColor: testName ? '#00B5D8' : '#555555', // Grey when disabled
+                  color: '#FFFFFF',
+                  borderRadius: '5px',
+                  padding: '10px 20px',
+                  fontWeight: 'bold',
+                  cursor: testName ? 'pointer' : 'not-allowed',
+                  transition: 'background-color 0.3s, transform 0.3s',
+                }}
+
+              >
+                Generate Test
+              </Button>
+            </Modal.Actions>
+          </Modal>
 
       {/* Separate Modal for viewing test */}
       <Modal open={viewTestModalOpen} onClose={() => setViewTestModalOpen(false)} size="small" style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-        <Modal.Header style={{ backgroundColor: '#1E1E2E', color: '#FFFFFF' }}>
-          View Test for: {selectedTopic?.topic}
-        </Modal.Header>
+        <Modal.Header style={{ backgroundColor: '#1E1E2E', color: '#FFFFFF' }}>View Test for: {selectedTopic?.topic}</Modal.Header>
         <Modal.Content style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-          <Button primary onClick={viewTest} style={{ marginBottom: '1em' }}>
+          <Button primary onClick={viewTest} style={{ backgroundColor: '#00B5D8', color: '#FFFFFF', padding: '10px 20px', borderRadius: '5px' }}>
             View Test
           </Button>
         </Modal.Content>

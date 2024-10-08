@@ -82,9 +82,7 @@ const UserClassesPage: React.FC = () => {
     setNewClassDescription('');
   };
 
-  if (loading) {
-    return <Loader active inline="centered" content="Loading classes..." />;
-  }
+
 
   return (
     <div style={{ paddingTop: '70px', backgroundColor: '#1E1E2E', minHeight: '100vh', padding: '2em 0' }}>

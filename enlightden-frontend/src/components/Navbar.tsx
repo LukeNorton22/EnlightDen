@@ -51,13 +51,6 @@ const NavBar: React.FC = () => {
         <Menu.Menu className={`nav-tabs ${tabsVisible ? 'show-tabs' : 'hide-tabs'}`} style={{ display: 'flex' }}>
           <Menu.Item
             as={NavLink}
-            to="/classes"
-            style={{ color: '#B0B0B0', transition: 'color 0.3s' }}
-          >
-            Classes
-          </Menu.Item>
-          <Menu.Item
-            as={NavLink}
             to="/calendar"
             style={{ color: '#B0B0B0', transition: 'color 0.3s' }}
           >

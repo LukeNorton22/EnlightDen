@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Icon, Container, Grid, Segment, Dropdown, Modal, Form, Input, Loader, Message, Dimmer } from 'semantic-ui-react';
+import { Button, Icon, Container, Grid, Segment, Modal, Form, Input, Loader, Message, Dimmer, Header } from 'semantic-ui-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient from '../../../src/apiClient'; // Axios instance for API calls
 
@@ -9,7 +9,7 @@ interface Note {
   title: string;
   content: string;
   filePath: string;
-  hasMindMap: boolean; // New field for checking mind map existence
+  hasMindMap: boolean; // Boolean to check mind map existence
 }
 
 const NotesPage: React.FC = () => {
@@ -20,11 +20,11 @@ const NotesPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMindMap, setLoadingMindMap] = useState<boolean>(false); // Full-screen loader for mind map generation
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null); // Track selected note for modal content
   const [className, setClassName] = useState<string>(''); // Store the class name
 
   // Fetch class name and notes for the current class
@@ -104,24 +104,12 @@ const NotesPage: React.FC = () => {
     }
   };
 
-  // Open modal to view a selected note
-  const viewNote = (note: Note) => {
-    setSelectedNote(note);
-    setIsModalOpen(true);
-  };
-
-  // Close the modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedNote(null);
-  };
-
   // Call API to generate mind map for the given noteId
   const generateMindMap = async (noteId: string) => {
     try {
       setLoadingMindMap(true); // Show full-screen loader while generating mind map
       const response = await apiClient.post(`/api/MindMap/CreateMindMapFromNote/${noteId}`);
-      
+
       if (response.status === 200) {
         // Navigate to the MindMapPage after the mind map is generated
         navigate(`/mindmap/${noteId}`);
@@ -140,26 +128,38 @@ const NotesPage: React.FC = () => {
     navigate(`/mindmap/${noteId}`);
   };
 
-  if (loading) {
-    return <Loader active inline="centered" content="Loading notes..." />;
-  }
+  // Open modal to view the selected note content
+  const openNoteContentModal = (note: Note) => {
+    setSelectedNote(note);
+    setIsModalOpen(true);
+  };
+
+  // Close the note content modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedNote(null);
+  };
 
   return (
-    <Container style={{ paddingTop: '70px' }}> {/* Fixes navbar overlap */}
+    <Container style={{ paddingTop: '90px' }}> {/* Fixes navbar overlap */}
       <h1>Notes for Class: {className}</h1> {/* Display class name instead of ID */}
 
       {errorMessage && <Message negative>{errorMessage}</Message>}
 
       {/* Button to upload a note */}
       <Button
+        circular
+        icon="plus"
+        size="massive"
+        color="green"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 1000,
+        }}
         onClick={openNoteModal}
-        primary
-        style={{ transition: 'background-color 0.3s' }} // Smooth hover transition
-        onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#0e77b8')} // Darker shade on hover
-        onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '')} // Revert on mouse leave
-      >
-        Upload Note
-      </Button>
+      />
 
       {/* Modal for uploading notes */}
       <Modal
@@ -200,52 +200,65 @@ const NotesPage: React.FC = () => {
             onClick={handleUpload}
             primary
             style={{ transition: 'background-color 0.3s' }} // Hover transition for submit button
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#0e77b8')} // Darker on hover
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '')} // Revert back
           >
             Submit
           </Button>
         </Modal.Actions>
       </Modal>
 
-      {/* Display notes */}
+      {/* Display notes in list view */}
       {notes.length > 0 ? (
-        <Segment>
-          <Grid columns={3} doubling stackable>
-            {notes.map((note) => (
-              <Grid.Column key={note.id}>
-                <Segment>
-                  <Icon name="file alternate outline" size="huge" />
-                  <h4>{note.title}</h4>
+        <Segment.Group>
+          {notes.map((note) => (
+            <Segment
+              key={note.id}
+              className="note-segment" // Apply class for hover effect
+              style={{
+                backgroundColor: '#2E2E3E',
+                padding: '1.5em',
+                borderRadius: '10px',
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+                cursor: 'pointer',
+                marginBottom: '1em',
+                position: 'relative',
+              }}
+              onClick={() => openNoteContentModal(note)} // Clicking the card opens the modal with note content
+            >
+              <Grid>
+                <Grid.Column width={12}>
+                  <Header as="h3" style={{ color: '#FFFFFF' }}>{note.title}</Header>
+                </Grid.Column>
 
-                  {/* Options Dropdown for each note */}
-                  <Dropdown text="Options" pointing="top left">
-                    <Dropdown.Menu>
-                      {note.hasMindMap ? (
-                        <Dropdown.Item
-                          text="View Mind Map"
-                          icon="sitemap"
-                          onClick={() => viewMindMap(note.id)} // Navigate to mind map
-                        />
-                      ) : (
-                        <Dropdown.Item
-                          text="Generate Mind Map"
-                          icon="sitemap"
-                          onClick={() => generateMindMap(note.id)} // Generate mind map
-                        />
-                      )}
-                      <Dropdown.Item
-                        text="View Note"
-                        icon="eye"
-                        onClick={() => viewNote(note)}
-                      />
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </Segment>
-              </Grid.Column>
-            ))}
-          </Grid>
-        </Segment>
+                <Grid.Column width={4} textAlign="right">
+                  {/* Conditional button for generating or viewing mind map */}
+                  {note.hasMindMap ? (
+                    <Button
+                      primary
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent modal from opening when the button is clicked
+                        viewMindMap(note.id);
+                      }}
+                      className="hover-scale"
+                    >
+                      View Mind Map
+                    </Button>
+                  ) : (
+                    <Button
+                      primary
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent modal from opening when the button is clicked
+                        generateMindMap(note.id);
+                      }}
+                      className="hover-scale"
+                    >
+                      Generate Mind Map
+                    </Button>
+                  )}
+                </Grid.Column>
+              </Grid>
+            </Segment>
+          ))}
+        </Segment.Group>
       ) : (
         <Message info>
           <Message.Header>No notes found for this class.</Message.Header>
