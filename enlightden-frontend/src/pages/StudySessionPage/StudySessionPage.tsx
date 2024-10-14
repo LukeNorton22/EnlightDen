@@ -80,7 +80,7 @@ const StudySessionPage: React.FC = () => {
     setIsBrownNoiseEnabled(prev => !prev);
     
     // If enabling brown noise and timer is active, play audio
-    if (!isBrownNoiseEnabled && audioRef.current) {
+    if (!isBrownNoiseEnabled && audioRef.current && isActive) {
       audioRef.current.play();
     } else if (isBrownNoiseEnabled && audioRef.current) {
       audioRef.current.pause();
