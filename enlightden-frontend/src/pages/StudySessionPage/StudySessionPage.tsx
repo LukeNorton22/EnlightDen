@@ -126,7 +126,7 @@ const StudySessionPage: React.FC = () => {
   };
 
   return (
-    <Container textAlign="center" style={{ marginTop: '50px', paddingTop: '100px' }}>
+    <Container style={{ marginTop: '50px', paddingTop: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Header as="h1" style={{ fontSize: '50px' }}>Pomodoro Timer</Header>
       <Header as="h2" style={{ fontSize: '16px', color: '#B0B0B0' }}>Set the timer for however long you want to study, then click start!</Header>
       
@@ -146,8 +146,8 @@ const StudySessionPage: React.FC = () => {
           borderRadius: '10px',
         }}
       />
-
-      <div>
+  
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
         <Button primary onClick={handleStart} style={{ margin: '10px', padding: '10px', fontSize: '16px' }}>
           Start
         </Button>
@@ -155,20 +155,22 @@ const StudySessionPage: React.FC = () => {
           Reset
         </Button>
       </div>
-      
-      <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
-        <Message style={{ marginTop: '70px', paddingTop: '10px', fontSize: '1em', width: '250px', backgroundColor: '#00B5D8', color: '#2E2E3E', fontWeight: '800' }}>
-          Want background noise to help you focus while studying?
-        </Message>
-        <Button 
-          toggle 
-          active={isBrownNoiseEnabled} 
-          onClick={toggleBrownNoise} 
-          style={{ marginTop: '70px', paddingTop: '10px', fontSize: '16px' }}>
-          {isBrownNoiseEnabled ? 'Disable Brown Noise' : 'Enable Brown Noise'}
-        </Button>
+  
+      <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', position: 'absolute', top: '100px', right: '20px', zIndex: 1000 }}>
+        <div style={{ textAlign: 'center' }}>
+          <Message style={{ marginTop: '10px', padding: '10px', fontSize: '1em', width: '250px', backgroundColor: '#00B5D8', color: '#2E2E3E', fontWeight: '800' }}>
+            Want background noise to help you focus while studying?
+          </Message>
+          <Button 
+            toggle 
+            active={isBrownNoiseEnabled} 
+            onClick={toggleBrownNoise} 
+            style={{ marginTop: '10px', padding: '10px', fontSize: '16px' }}>
+            {isBrownNoiseEnabled ? 'Disable Brown Noise' : 'Enable Brown Noise'}
+          </Button>
+        </div>
       </div>
-
+  
       {message && (
         <Message success style={{ fontSize: '60px', marginTop: '20px', backgroundColor: '#2E2E3E', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)', borderRadius: '10px' }}>
           {message}
@@ -176,6 +178,10 @@ const StudySessionPage: React.FC = () => {
       )}
     </Container>
   );
+  
+
+  
+  
 };
 
 export default StudySessionPage;
