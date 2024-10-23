@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import { Button, Container, Header, Message } from 'semantic-ui-react';
-import BrownNoise from '/Users/masonturner/EnlightDen/enlightden-frontend/src/Assets/BrownNoise.mp3'; // Adjusted import path
-import lofiBackground from '/Users/masonturner/EnlightDen/enlightden-frontend/src/Assets/lofiBackground.jpg'
-import brownBackground from '/Users/masonturner/EnlightDen/enlightden-frontend/src/Assets/brownBackground.jpeg'
-import lofiBeat from '/Users/masonturner/EnlightDen/enlightden-frontend/src/Assets/lofiBeat1.mp3'
+import BrownNoise from './BrownNoise.mp3'; // Adjusted import path
+import lofiBackground from './lofiBackground.jpg'
+import brownBackground from './brownBackground.jpeg'
+import lofiBeat from './lofiBeat1.mp3'
 
 // Custom Input Wrapper
 const CustomInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
