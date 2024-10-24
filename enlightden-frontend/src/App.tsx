@@ -1,11 +1,16 @@
 // src/App.tsx
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
 import NotesPage from './pages/NotesPage/NotesPage';
 import MindMapPage from './pages/MindMapPage/MindMapPage';
+import LoginPage from './pages/LoginPage/LoginPage';
 import Navbar from './components/Navbar'; // Import the Navbar component
+import UserClassesPage from './pages/ClassPage/ClassPage';
+import CalendarPage from './pages/Calendar/CalendarPage';
+import StudySessionPage from './pages/StudySessionPage/StudySessionPage';
+import TestPage from './pages/TestPage/TestPage';
 
 const App: React.FC = () => {
   const getMindMapData = (noteId: string) => {
@@ -16,23 +21,46 @@ const App: React.FC = () => {
         { id: 3, label: 'Subtopic 2' },
       ],
       edges: [
-        { id: 1, from: 1, to: 2 },
-        { id: 2, from: 1, to: 3 },
+        { from: 1, to: 2 },
+        { from: 1, to: 3 },
       ],
     };
   };
 
+  // Custom component to manage conditional navbar rendering
+  const Main = () => {
+    const location = useLocation();
+    
+    // Define paths where the Navbar should not appear (e.g., Login/Signup)
+    const hideNavbarPaths = ['/'];
+
+    // Check if the current path is in the list of paths where the navbar should be hidden
+    const shouldShowNavbar = !hideNavbarPaths.includes(location.pathname);
+
+    return (
+      <>
+        {shouldShowNavbar && <Navbar />}
+        <Routes>
+          <Route path='/' element={<LoginPage />} />
+          <Route path="/dash" element={<DashboardPage />} />
+          <Route path="/class/:classId/notes" element={<NotesPage />} /> {/* Notes page route */}
+          <Route path="/mindmap/:noteId" element={<MindMapPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/classes" element={<UserClassesPage />} />
+          <Route path="/studysession" element={<StudySessionPage />} />
+          <Route path="/test/:testId" element={<TestPage />} />  {/* Route for the TestPage */}
+
+        </Routes>
+      </>
+    );
+  };
+
   return (
     <Router>
-      {/* Add the Navbar here so it appears on every page */}
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/notes" element={<NotesPage />} />
-        <Route path="/mindmap/:noteId" element={<MindMapPage getMindMapData={getMindMapData} />} />
-      </Routes>
+      <Main />
     </Router>
   );
 };
 
 export default App;
+
