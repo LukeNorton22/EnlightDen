@@ -27,6 +27,12 @@ interface MindMapData {
   topics: MindMapTopic[];
 }
 
+interface StudyModule {
+  id: string;
+  mainTopic: string;
+  subtopics: { id: string; title: string; content: string }[];
+}
+
 const MindMapPage: React.FC = () => {
   const { noteId } = useParams<{ noteId: string }>();
   const navigate = useNavigate();
@@ -43,6 +49,7 @@ const MindMapPage: React.FC = () => {
   const [testId, setTestId] = useState<string | null>(null);
   const [flashcardId, setFlashcardId] = useState<string | null>(null);
   const [studyModuleId, setStudyModuleId] = useState<string | null>(null); //StudyModuleAddition
+  const [studyModule, setStudyModule] = useState<StudyModule | null>(null);
   const [testName, setTestName] = useState<string>("");
 
   useEffect(() => {
@@ -205,7 +212,32 @@ const MindMapPage: React.FC = () => {
       setModalOpen(false);
     }
   };
+
   // Study Module addition
+  const checkIfStudyModuleExists = async (studyModuleId: string) => {
+    try {
+      const response = await apiClient.get(
+        `/api/StudyTool/CheckExistingStudyModule/${studyModuleId}`
+      );
+      setStudyModuleExists(response.data.studyModuleExists === true);
+      setStudyModuleId(response.data.studyModuleId || null);
+    } catch (error) {
+      console.log("Error checking if study module exists:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (mindMapData?.id) {
+      checkIfStudyModuleExists(mindMapData.id);
+    }
+  }, [mindMapData]);
+
+  const viewStudyModule = () => {
+    if (studyModuleExists && studyModuleId) {
+      navigate(`/study-module/${studyModuleId}`);
+    }
+  };
+
   const generateStudyModule = async () => {
     if (!selectedTopic || !testName) {
       setErrorMessage("Please provide the name.");
@@ -214,24 +246,39 @@ const MindMapPage: React.FC = () => {
 
     setLoadingTest(true);
     try {
+      const payload = {
+        mindMapId: mindMapData?.id,
+        name: testName,
+      };
+
+      // Log the payload to the console
+      console.log("Payload being sent to API:", payload);
+
+      /*
       const response = await apiClient.post(
-        `/api/StudyTool/GenerateStudyModuleFromTopic`,
-        {
-          classId: mindMapData?.classId, //**** API EXPECTS A DIFFERENT FORMAT */
-          mindMapId: mindMapData?.id,
-          topicId: selectedTopic.id,
-          name: testName,
-          noteId: mindMapData?.noteId,
-        }
+        `/api/StudyTool/GenerateStudyModule`,
+        payload
+      );
+      */
+
+      const response = await apiClient.post(
+        `/api/StudyTool/GenerateStudyModule?mindMapId=${payload.mindMapId}&name=${payload.name}}`
       );
 
+      console.log("API Response:", response);
+
       if (response.status === 200) {
-        const studyModuleId = response.data.studyModuleId;
+        const studyModuleId = response.data.id;
+        console.log("Study Module ID:", studyModuleId);
+        setStudyModuleExists(true);
+        setStudyModuleId(studyModuleId);
+        setStudyModule(response.data);
         navigate(`/study-module/${studyModuleId}`);
       } else {
         setErrorMessage("Failed to generate study module.");
       }
     } catch (error) {
+      console.error("Error generating study module:", error);
       setErrorMessage("An error occurred while generating the study module.");
     } finally {
       setLoadingTest(false);
@@ -302,7 +349,7 @@ const MindMapPage: React.FC = () => {
             padding: "20px",
           }}
         >
-          {!testExists || !flashcardExists ? (
+          {!testExists || !flashcardExists || !studyModuleExists ? (
             <Form>
               <Form.Field>
                 <label style={{ color: "#FFFFFF" }}>Name</label>
@@ -411,7 +458,7 @@ const MindMapPage: React.FC = () => {
           {studyModuleExists ? (
             <Button
               primary
-              onClick={() => navigate(`/StudyModule/${studyModuleId}`)}
+              onClick={() => navigate(`/study-module/${studyModuleId}`)}
               style={{
                 backgroundColor: "#00B5D8",
                 color: "#FFFFFF",
@@ -427,7 +474,7 @@ const MindMapPage: React.FC = () => {
           ) : (
             <Button
               primary
-              onClick={() => generateTestOrFlashcard("flashcard")}
+              onClick={() => generateStudyModule()}
               disabled={!testName}
               style={{
                 backgroundColor: testName ? "#00B5D8" : "#555555",
