@@ -27,12 +27,6 @@ interface MindMapData {
   topics: MindMapTopic[];
 }
 
-interface StudyModule {
-  id: string;
-  mainTopic: string;
-  subtopics: { id: string; title: string; content: string }[];
-}
-
 const MindMapPage: React.FC = () => {
   const { noteId } = useParams<{ noteId: string }>();
   const navigate = useNavigate();
@@ -45,12 +39,11 @@ const MindMapPage: React.FC = () => {
   const [loadingTest, setLoadingTest] = useState(false);
   const [testExists, setTestExists] = useState<boolean>(false);
   const [flashcardExists, setFlashcardExists] = useState<boolean>(false);
-  const [studyModuleExists, setStudyModuleExists] = useState<boolean>(false); //StudyModuleAddition
   const [testId, setTestId] = useState<string | null>(null);
   const [flashcardId, setFlashcardId] = useState<string | null>(null);
-  const [studyModuleId, setStudyModuleId] = useState<string | null>(null); //StudyModuleAddition
-  const [studyModule, setStudyModule] = useState<StudyModule | null>(null);
   const [testName, setTestName] = useState<string>("");
+  const [studyModuleExists, setStudyModuleExists] = useState<boolean>(false);
+  const [studyModuleId, setStudyModuleId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMindMapData = async () => {
@@ -109,7 +102,7 @@ const MindMapPage: React.FC = () => {
 
             if (topic && topic.id) {
               setSelectedTopic({ id: topic.id, topic: topic.label });
-              checkIfTestOrFlashcardExists(topic.id);
+              checkIfTestOrFlashcardExistsOrStudyModule(topic.id);
             }
           });
         }
@@ -145,7 +138,7 @@ const MindMapPage: React.FC = () => {
     return { nodes, edges };
   };
 
-  const checkIfTestOrFlashcardExists = async (topicId: string) => {
+  const checkIfTestOrFlashcardExistsOrStudyModule = async (topicId: string) => {
     try {
       const testResponse = await apiClient.get(
         `/api/StudyTool/CheckExistingTest/${topicId}`
@@ -153,27 +146,40 @@ const MindMapPage: React.FC = () => {
       const flashcardResponse = await apiClient.get(
         `/api/StudyTool/CheckExistingFlashcard/${topicId}`
       );
+      const studyModuleResponse = await apiClient.get(
+        `/api/StudyTool/CheckExistingStudyModule/${topicId}`
+      );
 
       setTestExists(testResponse.data.testExists === true);
       setFlashcardExists(flashcardResponse.data.flashCardExists === true);
+      setStudyModuleExists(studyModuleResponse.data.studyModuleExists === true);
+
       setTestId(testResponse.data.testExists ? testResponse.data.testId : null);
       setFlashcardId(
         flashcardResponse.data.flashCardExists
           ? flashcardResponse.data.flashCardId
           : null
       );
+      setStudyModuleId(
+        studyModuleResponse.data.studyModuleExists
+          ? studyModuleResponse.data.studyModuleId
+          : null
+      );
 
-      if (testExists || flashcardExists) {
+      if (testExists || flashcardExists || studyModuleExists) {
         setViewTestModalOpen(true);
       } else {
         setModalOpen(true);
       }
     } catch (error) {
-      console.log("Error checking if test or flashcards exist:", error);
+      console.log("Error checking if study tools exist:", error);
     }
   };
 
-  const generateTestOrFlashcard = async (type: "test" | "flashcard") => {
+  // Generate Test, Flashcard set or Study Module
+  const generateStudyTool = async (
+    type: "test" | "flashcard" | "studyModule"
+  ) => {
     if (!selectedTopic || !testName) {
       setErrorMessage("Please provide the name.");
       return;
@@ -184,24 +190,50 @@ const MindMapPage: React.FC = () => {
       const endpoint =
         type === "test"
           ? `/api/StudyTool/GenerateTestFromTopic`
-          : `/api/StudyTool/GenerateFlashcardsFromTopic`;
+          : type === "flashcard"
+          ? `/api/StudyTool/GenerateFlashcardsFromTopic`
+          : `/api/StudyTool/GenerateStudyModuleFromTopic`;
 
-      const response = await apiClient.post(endpoint, {
-        classId: mindMapData?.classId,
-        mindMapId: mindMapData?.id,
-        topicId: selectedTopic.id,
-        name: testName,
-        noteId: mindMapData?.noteId,
-      });
+      // Construct the payload dynamically based on the type
+      const payload =
+        type === "studyModule"
+          ? {
+              classId: mindMapData?.classId,
+              mindMapId: mindMapData?.id,
+              mindMapTopicId: selectedTopic.id,
+              mindMapTopic: testName,
+              noteId: mindMapData?.noteId,
+            }
+          : {
+              classId: mindMapData?.classId,
+              mindMapId: mindMapData?.id,
+              topicId: selectedTopic.id,
+              name: testName,
+            };
+
+      const response = await apiClient.post(endpoint, payload);
 
       if (response.status === 200) {
-        if (type === "flashcard") {
-          const flashcardId = response.data.flashcardsId; // Extract the flashcard ID from response
-          navigate(`/flashcards/${flashcardId}`); // Navigate to the flashcard page
-        } else {
-          const testId = response.data.testId; // Extract the test ID from response
-          navigate(`/test/${testId}`); // Navigate to the test page
+        const toolId =
+          type === "test"
+            ? response.data.testId
+            : type === "flashcard"
+            ? response.data.flashcardsId
+            : response.data.studyModuleId;
+
+        if (type === "studyModule") {
+          setStudyModuleExists(true);
+          setStudyModuleId(response.data.studyModuleId);
         }
+
+        const route =
+          type === "test"
+            ? `/test/${toolId}`
+            : type === "flashcard"
+            ? `/flashcards/${toolId}`
+            : `/study-module/${toolId}`;
+
+        navigate(route);
       } else {
         setErrorMessage(`Failed to generate ${type}.`);
       }
@@ -212,80 +244,6 @@ const MindMapPage: React.FC = () => {
       setModalOpen(false);
     }
   };
-
-  // Study Module addition
-  const checkIfStudyModuleExists = async (studyModuleId: string) => {
-    try {
-      const response = await apiClient.get(
-        `/api/StudyTool/CheckExistingStudyModule/${studyModuleId}`
-      );
-      setStudyModuleExists(response.data.studyModuleExists === true);
-      setStudyModuleId(response.data.studyModuleId || null);
-    } catch (error) {
-      console.log("Error checking if study module exists:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (mindMapData?.id) {
-      checkIfStudyModuleExists(mindMapData.id);
-    }
-  }, [mindMapData]);
-
-  const viewStudyModule = () => {
-    if (studyModuleExists && studyModuleId) {
-      navigate(`/study-module/${studyModuleId}`);
-    }
-  };
-
-  const generateStudyModule = async () => {
-    if (!selectedTopic || !testName) {
-      setErrorMessage("Please provide the name.");
-      return;
-    }
-
-    setLoadingTest(true);
-    try {
-      const payload = {
-        mindMapId: mindMapData?.id,
-        name: testName,
-      };
-
-      // Log the payload to the console
-      console.log("Payload being sent to API:", payload);
-
-      /*
-      const response = await apiClient.post(
-        `/api/StudyTool/GenerateStudyModule`,
-        payload
-      );
-      */
-
-      const response = await apiClient.post(
-        `/api/StudyTool/GenerateStudyModule?mindMapId=${payload.mindMapId}&name=${payload.name}}`
-      );
-
-      console.log("API Response:", response);
-
-      if (response.status === 200) {
-        const studyModuleId = response.data.id;
-        console.log("Study Module ID:", studyModuleId);
-        setStudyModuleExists(true);
-        setStudyModuleId(studyModuleId);
-        setStudyModule(response.data);
-        navigate(`/study-module/${studyModuleId}`);
-      } else {
-        setErrorMessage("Failed to generate study module.");
-      }
-    } catch (error) {
-      console.error("Error generating study module:", error);
-      setErrorMessage("An error occurred while generating the study module.");
-    } finally {
-      setLoadingTest(false);
-      setModalOpen(false);
-    }
-  };
-  // End of Study Module addition
 
   const viewTestOrFlashcard = () => {
     if (testExists && testId) {
@@ -349,7 +307,7 @@ const MindMapPage: React.FC = () => {
             padding: "20px",
           }}
         >
-          {!testExists || !flashcardExists || !studyModuleExists ? (
+          {!testExists || !flashcardExists ? (
             <Form>
               <Form.Field>
                 <label style={{ color: "#FFFFFF" }}>Name</label>
@@ -382,28 +340,26 @@ const MindMapPage: React.FC = () => {
           }}
         >
           {testExists ? (
-            <>
-              <Button
-                primary
-                onClick={() => navigate(`/test/${testId}`)}
-                style={{
-                  backgroundColor: "#00B5D8",
-                  color: "#FFFFFF",
-                  borderRadius: "5px",
-                  padding: "10px 20px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s, transform 0.3s",
-                  marginRight: "10px",
-                }}
-              >
-                View Test
-              </Button>
-            </>
+            <Button
+              primary
+              onClick={() => navigate(`/test/${testId}`)}
+              style={{
+                backgroundColor: "#00B5D8",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "background-color 0.3s, transform 0.3s",
+                marginRight: "10px",
+              }}
+            >
+              View Test
+            </Button>
           ) : (
             <Button
               primary
-              onClick={() => generateTestOrFlashcard("test")}
+              onClick={() => generateStudyTool("test")}
               disabled={!testName}
               style={{
                 backgroundColor: testName ? "#00B5D8" : "#555555",
@@ -439,7 +395,7 @@ const MindMapPage: React.FC = () => {
           ) : (
             <Button
               primary
-              onClick={() => generateTestOrFlashcard("flashcard")}
+              onClick={() => generateStudyTool("flashcard")}
               disabled={!testName}
               style={{
                 backgroundColor: testName ? "#00B5D8" : "#555555",
@@ -474,7 +430,7 @@ const MindMapPage: React.FC = () => {
           ) : (
             <Button
               primary
-              onClick={() => generateStudyModule()}
+              onClick={() => generateStudyTool("studyModule")}
               disabled={!testName}
               style={{
                 backgroundColor: testName ? "#00B5D8" : "#555555",
