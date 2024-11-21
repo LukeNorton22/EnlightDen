@@ -245,11 +245,14 @@ const MindMapPage: React.FC = () => {
     }
   };
 
-  const viewTestOrFlashcard = () => {
+  const viewTestOrFlashcardOrStudyModule = () => {
     if (testExists && testId) {
       navigate(`/test/${testId}`);
     } else if (flashcardExists && flashcardId) {
       navigate(`/flashcards/${flashcardId}`);
+    } else if (studyModuleExists && studyModuleId) {
+      console.log("Navigating to Study Module:", studyModuleId); // Debug Log
+      navigate(`/study-module/${studyModuleId}`);
     }
   };
 
@@ -307,7 +310,7 @@ const MindMapPage: React.FC = () => {
             padding: "20px",
           }}
         >
-          {!testExists || !flashcardExists ? (
+          {!testExists || !flashcardExists || !studyModuleExists ? (
             <Form>
               <Form.Field>
                 <label style={{ color: "#FFFFFF" }}>Name</label>
@@ -460,7 +463,7 @@ const MindMapPage: React.FC = () => {
         <Modal.Content style={{ backgroundColor: "#2E2E3E", color: "#FFFFFF" }}>
           <Button
             primary
-            onClick={viewTestOrFlashcard}
+            onClick={viewTestOrFlashcardOrStudyModule}
             style={{
               backgroundColor: "#00B5D8",
               color: "#FFFFFF",

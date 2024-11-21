@@ -25,13 +25,22 @@ const StudyModulePage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Fetching study module for ID:", studyModuleId);
+    if (!studyModuleId) {
+      setErrorMessage("Study Module ID is missing.");
+      setLoading(false);
+      return;
+    }
+
     const fetchStudyModuleData = async () => {
       try {
         const response = await apiClient.get(
           `/api/StudyTool/GetStudyModule/${studyModuleId}`
         );
         if (response.status === 200) {
+          console.log("Response Data:", response.data); // Verify API response here
           setStudyModuleData(response.data);
+          console.log("State After Set:", response.data); // Verify state update
         } else {
           setErrorMessage("Failed to load study module.");
         }
@@ -54,10 +63,14 @@ const StudyModulePage: React.FC = () => {
   }
 
   return (
-    <Container>
-      <Header as="h1">{studyModuleData?.name}</Header>
+    <Container style={{ paddingTop: "100px" }}>
+      <Header as="h1" textAlign="center" style={{ marginTop: "20px" }}>
+        {studyModuleData?.name || "Debug: No Study Module Name"}
+      </Header>
+
+      {/* List the subtopics */}
       {studyModuleData?.subTopics.map((subTopic) => (
-        <div key={subTopic.id}>
+        <div key={subTopic.id} style={{ marginTop: "20px" }}>
           <Header as="h3">{subTopic.title}</Header>
           <p>{subTopic.content}</p>
         </div>
