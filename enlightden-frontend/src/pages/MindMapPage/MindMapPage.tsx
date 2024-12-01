@@ -188,21 +188,19 @@ const MindMapPage: React.FC = () => {
     setLoadingTest(true);
     try {
       const endpoint =
-        type === "test"
+        type === "studyModule"
+          ? `/api/StudyTool/GenerateStudyModuleFromTopic`
+          : type === "test"
           ? `/api/StudyTool/GenerateTestFromTopic`
-          : type === "flashcard"
-          ? `/api/StudyTool/GenerateFlashcardsFromTopic`
-          : `/api/StudyTool/GenerateStudyModuleFromTopic`;
+          : `/api/StudyTool/GenerateFlashcardsFromTopic`;
 
       // Construct the payload dynamically based on the type
       const payload =
         type === "studyModule"
           ? {
-              classId: mindMapData?.classId,
               mindMapId: mindMapData?.id,
               mindMapTopicId: selectedTopic.id,
               mindMapTopic: testName,
-              noteId: mindMapData?.noteId,
             }
           : {
               classId: mindMapData?.classId,
@@ -212,19 +210,31 @@ const MindMapPage: React.FC = () => {
             };
 
       const response = await apiClient.post(endpoint, payload);
+      console.log(
+        "API Response from the backend right after sending payload:",
+        response.data
+      ); // Debug Log
+      console.log("Generated Test ID:", response.data.testId); // Debug Log
+      console.log("Generated Flashcard ID:", response.data.flashcardsId); // Debug Log
+      console.log("Generated Study Module ID:", response.data.id); // Debug Log
 
       if (response.status === 200) {
-        const toolId =
-          type === "test"
-            ? response.data.testId
-            : type === "flashcard"
-            ? response.data.flashcardsId
-            : response.data.studyModuleId;
+        let toolId;
 
-        if (type === "studyModule") {
+        if (type === "test") {
+          toolId = response.data.testId;
+        } else if (type === "flashcard") {
+          toolId = response.data.flashcardsId;
+        } else if (type === "studyModule") {
+          toolId = response.data.id;
           setStudyModuleExists(true);
-          setStudyModuleId(response.data.studyModuleId);
+          setStudyModuleId(response.data.id);
+        } else {
+          // Handle unexpected `type` values if needed
+          console.log("Unexpected type:", type);
         }
+
+        console.log("Generated ${type} Id:", toolId);
 
         const route =
           type === "test"
@@ -232,6 +242,8 @@ const MindMapPage: React.FC = () => {
             : type === "flashcard"
             ? `/flashcards/${toolId}`
             : `/study-module/${toolId}`;
+
+        console.log("Navigating to route:", route); // Debug log
 
         navigate(route);
       } else {

@@ -62,6 +62,7 @@ const App: React.FC = () => {
             path="/flashcards/:flashcardId"
             element={<FlashcardTester />}
           />
+          {/* Route for StudyModulePage */}
           <Route
             path="/study-module/:studyModuleId"
             element={<StudyModulePage />}

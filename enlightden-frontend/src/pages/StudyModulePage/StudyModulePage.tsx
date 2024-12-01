@@ -19,6 +19,8 @@ interface StudyModuleData {
 
 const StudyModulePage: React.FC = () => {
   const { studyModuleId } = useParams<{ studyModuleId: string }>();
+  console.log("Study Module ID from URL:", studyModuleId); // For debugging
+
   const [studyModuleData, setStudyModuleData] =
     useState<StudyModuleData | null>(null);
   const [loading, setLoading] = useState(true);
