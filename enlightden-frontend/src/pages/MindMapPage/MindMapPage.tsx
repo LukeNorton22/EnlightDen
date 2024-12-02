@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Network } from 'vis-network/standalone';
-import { Header, Loader, Message, Container, Modal, Button, Input, Dimmer, Form } from 'semantic-ui-react';
-import apiClient from '../../../src/apiClient';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Network } from "vis-network/standalone";
+import {
+  Header,
+  Loader,
+  Message,
+  Container,
+  Modal,
+  Button,
+  Input,
+  Dimmer,
+  Form,
+} from "semantic-ui-react";
+import apiClient from "../../../src/apiClient";
 
 interface MindMapTopic {
   id: string;
@@ -31,19 +41,23 @@ const MindMapPage: React.FC = () => {
   const [flashcardExists, setFlashcardExists] = useState<boolean>(false);
   const [testId, setTestId] = useState<string | null>(null);
   const [flashcardId, setFlashcardId] = useState<string | null>(null);
-  const [testName, setTestName] = useState<string>('');
+  const [testName, setTestName] = useState<string>("");
+  const [studyModuleExists, setStudyModuleExists] = useState<boolean>(false);
+  const [studyModuleId, setStudyModuleId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMindMapData = async () => {
       try {
-        const response = await apiClient.get(`/api/MindMap/GetMindMapByNoteId/${noteId}`);
+        const response = await apiClient.get(
+          `/api/MindMap/GetMindMapByNoteId/${noteId}`
+        );
         if (response.status === 200) {
           setMindMapData(response.data);
         } else {
-          setErrorMessage('Failed to load mind map.');
+          setErrorMessage("Failed to load mind map.");
         }
       } catch (error) {
-        setErrorMessage('An error occurred while fetching mind map data.');
+        setErrorMessage("An error occurred while fetching mind map data.");
       } finally {
         setLoading(false);
       }
@@ -54,7 +68,7 @@ const MindMapPage: React.FC = () => {
 
   useEffect(() => {
     if (mindMapData) {
-      const container = document.getElementById('mindmap');
+      const container = document.getElementById("mindmap");
 
       if (container) {
         const { nodes, edges } = convertJsonToVisNetworkData(mindMapData);
@@ -62,18 +76,18 @@ const MindMapPage: React.FC = () => {
         if (nodes && edges) {
           const options = {
             nodes: {
-              shape: 'dot',
+              shape: "dot",
               size: 16,
               color: {
-                background: '#00B5D8',
-                border: '#FFFFFF',
+                background: "#00B5D8",
+                border: "#FFFFFF",
               },
               font: {
-                color: '#FFFFFF',
+                color: "#FFFFFF",
               },
             },
             edges: {
-              color: '#00B5D8',
+              color: "#00B5D8",
               width: 2,
             },
             physics: {
@@ -82,13 +96,13 @@ const MindMapPage: React.FC = () => {
           };
           const network = new Network(container, { nodes, edges }, options);
 
-          network.on('click', function (params) {
+          network.on("click", function (params) {
             const nodeId = params.nodes[0];
             const topic = nodes.find((node) => node.id === nodeId);
 
             if (topic && topic.id) {
               setSelectedTopic({ id: topic.id, topic: topic.label });
-              checkIfTestOrFlashcardExists(topic.id);
+              checkIfTestOrFlashcardExistsOrStudyModule(topic.id);
             }
           });
         }
@@ -97,15 +111,26 @@ const MindMapPage: React.FC = () => {
   }, [mindMapData]);
 
   const convertJsonToVisNetworkData = (data: MindMapData) => {
-    const nodes: { id: string; label: string; size: number; color: string }[] = [];
+    const nodes: { id: string; label: string; size: number; color: string }[] =
+      [];
     const edges: { from: string; to: string; weight: number }[] = [];
 
-    const rootNodeId = data.id || 'root';
-    const rootNode = { id: rootNodeId, label: data.name, size: 20, color: 'lightblue' };
+    const rootNodeId = data.id || "root";
+    const rootNode = {
+      id: rootNodeId,
+      label: data.name,
+      size: 20,
+      color: "lightblue",
+    };
     nodes.push(rootNode);
 
     data.topics.forEach((topic) => {
-      const topicNode = { id: topic.id, label: topic.topic, size: 15, color: 'lightgreen' };
+      const topicNode = {
+        id: topic.id,
+        label: topic.topic,
+        size: 15,
+        color: "lightgreen",
+      };
       nodes.push(topicNode);
       edges.push({ from: rootNodeId, to: topic.id, weight: 2 });
     });
@@ -113,55 +138,114 @@ const MindMapPage: React.FC = () => {
     return { nodes, edges };
   };
 
-  const checkIfTestOrFlashcardExists = async (topicId: string) => {
+  const checkIfTestOrFlashcardExistsOrStudyModule = async (topicId: string) => {
     try {
-      const testResponse = await apiClient.get(`/api/StudyTool/CheckExistingTest/${topicId}`);
-      const flashcardResponse = await apiClient.get(`/api/StudyTool/CheckExistingFlashcard/${topicId}`);
+      const testResponse = await apiClient.get(
+        `/api/StudyTool/CheckExistingTest/${topicId}`
+      );
+      const flashcardResponse = await apiClient.get(
+        `/api/StudyTool/CheckExistingFlashcard/${topicId}`
+      );
+      const studyModuleResponse = await apiClient.get(
+        `/api/StudyTool/CheckExistingStudyModule/${topicId}`
+      );
 
       setTestExists(testResponse.data.testExists === true);
       setFlashcardExists(flashcardResponse.data.flashCardExists === true);
-      setTestId(testResponse.data.testExists ? testResponse.data.testId : null);
-      setFlashcardId(flashcardResponse.data.flashCardExists ? flashcardResponse.data.flashCardId : null);
+      setStudyModuleExists(studyModuleResponse.data.studyModuleExists === true);
 
-      if (testExists || flashcardExists) {
+      setTestId(testResponse.data.testExists ? testResponse.data.testId : null);
+      setFlashcardId(
+        flashcardResponse.data.flashCardExists
+          ? flashcardResponse.data.flashCardId
+          : null
+      );
+      setStudyModuleId(
+        studyModuleResponse.data.studyModuleExists
+          ? studyModuleResponse.data.studyModuleId
+          : null
+      );
+
+      if (testExists || flashcardExists || studyModuleExists) {
         setViewTestModalOpen(true);
       } else {
         setModalOpen(true);
       }
     } catch (error) {
-      console.log('Error checking if test or flashcards exist:', error);
+      console.log("Error checking if study tools exist:", error);
     }
   };
 
-  const generateTestOrFlashcard = async (type: 'test' | 'flashcard') => {
+  // Generate Test, Flashcard set or Study Module
+  const generateStudyTool = async (
+    type: "test" | "flashcard" | "studyModule"
+  ) => {
     if (!selectedTopic || !testName) {
-      setErrorMessage('Please provide the name.');
+      setErrorMessage("Please provide the name.");
       return;
     }
-  
+
     setLoadingTest(true);
     try {
       const endpoint =
-        type === 'test'
+        type === "studyModule"
+          ? `/api/StudyTool/GenerateStudyModuleFromTopic`
+          : type === "test"
           ? `/api/StudyTool/GenerateTestFromTopic`
           : `/api/StudyTool/GenerateFlashcardsFromTopic`;
-  
-      const response = await apiClient.post(endpoint, {
-        classId: mindMapData?.classId,
-        mindMapId: mindMapData?.id,
-        topicId: selectedTopic.id,
-        name: testName,
-        noteId: mindMapData?.noteId,
-      });
-  
+
+      // Construct the payload dynamically based on the type
+      const payload =
+        type === "studyModule"
+          ? {
+              mindMapId: mindMapData?.id,
+              mindMapTopicId: selectedTopic.id,
+              mindMapTopic: testName,
+            }
+          : {
+              classId: mindMapData?.classId,
+              mindMapId: mindMapData?.id,
+              topicId: selectedTopic.id,
+              name: testName,
+            };
+
+      const response = await apiClient.post(endpoint, payload);
+      console.log(
+        "API Response from the backend right after sending payload:",
+        response.data
+      ); // Debug Log
+      console.log("Generated Test ID:", response.data.testId); // Debug Log
+      console.log("Generated Flashcard ID:", response.data.flashcardsId); // Debug Log
+      console.log("Generated Study Module ID:", response.data.id); // Debug Log
+
       if (response.status === 200) {
-        if (type === 'flashcard') {
-          const flashcardId = response.data.flashcardsId; // Extract the flashcard ID from response
-          navigate(`/flashcards/${flashcardId}`); // Navigate to the flashcard page
+        let toolId;
+
+        if (type === "test") {
+          toolId = response.data.testId;
+        } else if (type === "flashcard") {
+          toolId = response.data.flashcardsId;
+        } else if (type === "studyModule") {
+          toolId = response.data.id;
+          setStudyModuleExists(true);
+          setStudyModuleId(response.data.id);
         } else {
-          const testId = response.data.testId; // Extract the test ID from response
-          navigate(`/test/${testId}`); // Navigate to the test page
+          // Handle unexpected `type` values if needed
+          console.log("Unexpected type:", type);
         }
+
+        console.log("Generated ${type} Id:", toolId);
+
+        const route =
+          type === "test"
+            ? `/test/${toolId}`
+            : type === "flashcard"
+            ? `/flashcards/${toolId}`
+            : `/study-module/${toolId}`;
+
+        console.log("Navigating to route:", route); // Debug log
+
+        navigate(route);
       } else {
         setErrorMessage(`Failed to generate ${type}.`);
       }
@@ -172,13 +256,15 @@ const MindMapPage: React.FC = () => {
       setModalOpen(false);
     }
   };
-  
 
-  const viewTestOrFlashcard = () => {
+  const viewTestOrFlashcardOrStudyModule = () => {
     if (testExists && testId) {
       navigate(`/test/${testId}`);
     } else if (flashcardExists && flashcardId) {
       navigate(`/flashcards/${flashcardId}`);
+    } else if (studyModuleExists && studyModuleId) {
+      console.log("Navigating to Study Module:", studyModuleId); // Debug Log
+      navigate(`/study-module/${studyModuleId}`);
     }
   };
 
@@ -187,9 +273,12 @@ const MindMapPage: React.FC = () => {
   }
 
   return (
-    <div style={{ backgroundColor: '#1E1E2E', minHeight: '100vh' }}>
-      <Container textAlign="center" style={{ paddingTop: '110px', paddingBottom: '20px' }}>
-        <Header as="h1" style={{ color: '#FFFFFF' }}>
+    <div style={{ backgroundColor: "#1E1E2E", minHeight: "100vh" }}>
+      <Container
+        textAlign="center"
+        style={{ paddingTop: "110px", paddingBottom: "20px" }}
+      >
+        <Header as="h1" style={{ color: "#FFFFFF" }}>
           Mind Map for: {mindMapData?.name}
         </Header>
       </Container>
@@ -197,9 +286,9 @@ const MindMapPage: React.FC = () => {
       <div
         id="mindmap"
         style={{
-          height: 'calc(100vh - 120px)',
-          backgroundColor: '#2E2E3E',
-          padding: '20px',
+          height: "calc(100vh - 120px)",
+          backgroundColor: "#2E2E3E",
+          padding: "20px",
         }}
       ></div>
 
@@ -208,48 +297,48 @@ const MindMapPage: React.FC = () => {
         onClose={() => setModalOpen(false)}
         size="small"
         style={{
-          backgroundColor: '#2E2E3E',
-          color: '#FFFFFF',
-          borderRadius: '10px',
+          backgroundColor: "#2E2E3E",
+          color: "#FFFFFF",
+          borderRadius: "10px",
         }}
       >
         <Modal.Header
           style={{
-            backgroundColor: '#1E1E2E',
-            color: '#FFFFFF',
-            borderBottom: '1px solid #00B5D8',
-            borderRadius: '10px 10px 0 0',
+            backgroundColor: "#1E1E2E",
+            color: "#FFFFFF",
+            borderBottom: "1px solid #00B5D8",
+            borderRadius: "10px 10px 0 0",
           }}
         >
           {testExists && flashcardExists
-            ? 'View Study Tools for: ' + selectedTopic?.topic
-            : 'Generate Study Tool for: ' + selectedTopic?.topic}
+            ? "View Study Tools for: " + selectedTopic?.topic
+            : "Generate Study Tool for: " + selectedTopic?.topic}
         </Modal.Header>
 
         <Modal.Content
           style={{
-            backgroundColor: '#2E2E3E',
-            color: '#FFFFFF',
-            padding: '20px',
+            backgroundColor: "#2E2E3E",
+            color: "#FFFFFF",
+            padding: "20px",
           }}
         >
-          {!testExists || !flashcardExists ? (
+          {!testExists || !flashcardExists || !studyModuleExists ? (
             <Form>
               <Form.Field>
-                <label style={{ color: '#FFFFFF' }}>Name</label>
+                <label style={{ color: "#FFFFFF" }}>Name</label>
                 <Input
                   placeholder="Enter name"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
                   style={{
-                    backgroundColor: '#1E1E2E',
-                    color: '#FFFFFF',
-                    border: '1px solid #00B5D8',
-                    borderRadius: '5px',
-                    padding: '0px',
-                    outline: 'none',
-                    boxShadow: 'none',
-                    width: '100%',
+                    backgroundColor: "#1E1E2E",
+                    color: "#FFFFFF",
+                    border: "1px solid #00B5D8",
+                    borderRadius: "5px",
+                    padding: "0px",
+                    outline: "none",
+                    boxShadow: "none",
+                    width: "100%",
                   }}
                 />
               </Form.Field>
@@ -258,94 +347,142 @@ const MindMapPage: React.FC = () => {
         </Modal.Content>
 
         <Modal.Actions
-  style={{
-    backgroundColor: '#1E1E2E',
-    padding: '20px',
-    textAlign: 'right',
-    borderRadius: '0 0 10px 10px',
-  }}
->
-  {testExists ? (
-    <>
-      <Button
-        primary
-        onClick={() => navigate(`/test/${testId}`)}
-        style={{
-          backgroundColor: '#00B5D8',
-          color: '#FFFFFF',
-          borderRadius: '5px',
-          padding: '10px 20px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          transition: 'background-color 0.3s, transform 0.3s',
-          marginRight: '10px',
-        }}
-      >
-        View Test
-      </Button>
-    </>
-  ) : (
-    <Button
-      primary
-      onClick={() => generateTestOrFlashcard('test')}
-      disabled={!testName}
-      style={{
-        backgroundColor: testName ? '#00B5D8' : '#555555',
-        color: '#FFFFFF',
-        borderRadius: '5px',
-        padding: '10px 20px',
-        fontWeight: 'bold',
-        cursor: testName ? 'pointer' : 'not-allowed',
-        transition: 'background-color 0.3s, transform 0.3s',
-        marginRight: '10px',
-      }}
-    >
-      Generate Test
-    </Button>
-  )}
+          style={{
+            backgroundColor: "#1E1E2E",
+            padding: "20px",
+            textAlign: "right",
+            borderRadius: "0 0 10px 10px",
+          }}
+        >
+          {testExists ? (
+            <Button
+              primary
+              onClick={() => navigate(`/test/${testId}`)}
+              style={{
+                backgroundColor: "#00B5D8",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "background-color 0.3s, transform 0.3s",
+                marginRight: "10px",
+              }}
+            >
+              View Test
+            </Button>
+          ) : (
+            <Button
+              primary
+              onClick={() => generateStudyTool("test")}
+              disabled={!testName}
+              style={{
+                backgroundColor: testName ? "#00B5D8" : "#555555",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: testName ? "pointer" : "not-allowed",
+                transition: "background-color 0.3s, transform 0.3s",
+                marginRight: "10px",
+              }}
+            >
+              Generate Test
+            </Button>
+          )}
 
-  {flashcardExists ? (
-    <Button
-      primary
-      onClick={() => navigate(`/flashcards/${flashcardId}`)}
-      style={{
-        backgroundColor: '#00B5D8',
-        color: '#FFFFFF',
-        borderRadius: '5px',
-        padding: '10px 20px',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s, transform 0.3s',
-      }}
-    >
-      View Flashcards
-    </Button>
-  ) : (
-    <Button
-      primary
-      onClick={() => generateTestOrFlashcard('flashcard')}
-      disabled={!testName}
-      style={{
-        backgroundColor: testName ? '#00B5D8' : '#555555',
-        color: '#FFFFFF',
-        borderRadius: '5px',
-        padding: '10px 20px',
-        fontWeight: 'bold',
-        cursor: testName ? 'pointer' : 'not-allowed',
-        transition: 'background-color 0.3s, transform 0.3s',
-      }}
-    >
-      Generate Flashcard
-    </Button>
-  )}
-</Modal.Actions>
+          {flashcardExists ? (
+            <Button
+              primary
+              onClick={() => navigate(`/flashcards/${flashcardId}`)}
+              style={{
+                backgroundColor: "#00B5D8",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "background-color 0.3s, transform 0.3s",
+              }}
+            >
+              View Flashcards
+            </Button>
+          ) : (
+            <Button
+              primary
+              onClick={() => generateStudyTool("flashcard")}
+              disabled={!testName}
+              style={{
+                backgroundColor: testName ? "#00B5D8" : "#555555",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: testName ? "pointer" : "not-allowed",
+                transition: "background-color 0.3s, transform 0.3s",
+              }}
+            >
+              Generate Flashcard
+            </Button>
+          )}
 
+          {studyModuleExists ? (
+            <Button
+              primary
+              onClick={() => navigate(`/study-module/${studyModuleId}`)}
+              style={{
+                backgroundColor: "#00B5D8",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "background-color 0.3s, transform 0.3s",
+              }}
+            >
+              View Study Module
+            </Button>
+          ) : (
+            <Button
+              primary
+              onClick={() => generateStudyTool("studyModule")}
+              disabled={!testName}
+              style={{
+                backgroundColor: testName ? "#00B5D8" : "#555555",
+                color: "#FFFFFF",
+                borderRadius: "5px",
+                padding: "10px 20px",
+                fontWeight: "bold",
+                cursor: testName ? "pointer" : "not-allowed",
+                transition: "background-color 0.3s, transform 0.3s",
+              }}
+            >
+              Generate Study Module
+            </Button>
+          )}
+        </Modal.Actions>
       </Modal>
 
-      <Modal open={viewTestModalOpen} onClose={() => setViewTestModalOpen(false)} size="small" style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-        <Modal.Header style={{ backgroundColor: '#1E1E2E', color: '#FFFFFF' }}>View Study Tool for: {selectedTopic?.topic}</Modal.Header>
-        <Modal.Content style={{ backgroundColor: '#2E2E3E', color: '#FFFFFF' }}>
-          <Button primary onClick={viewTestOrFlashcard} style={{ backgroundColor: '#00B5D8', color: '#FFFFFF', padding: '10px 20px', borderRadius: '5px' }}>
+      <Modal
+        open={viewTestModalOpen}
+        onClose={() => setViewTestModalOpen(false)}
+        size="small"
+        style={{ backgroundColor: "#2E2E3E", color: "#FFFFFF" }}
+      >
+        <Modal.Header style={{ backgroundColor: "#1E1E2E", color: "#FFFFFF" }}>
+          View Study Tool for: {selectedTopic?.topic}
+        </Modal.Header>
+        <Modal.Content style={{ backgroundColor: "#2E2E3E", color: "#FFFFFF" }}>
+          <Button
+            primary
+            onClick={viewTestOrFlashcardOrStudyModule}
+            style={{
+              backgroundColor: "#00B5D8",
+              color: "#FFFFFF",
+              padding: "10px 20px",
+              borderRadius: "5px",
+            }}
+          >
             View Study Tool
           </Button>
         </Modal.Content>
