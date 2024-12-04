@@ -53,7 +53,7 @@
   letter-spacing: 1px !important;
   text-align: center !important;
   padding: 1rem 0 !important;
-  border-bottom: 1px solid #89cff0 !important;
+
   width: 100% !important;
 }
 
@@ -62,7 +62,7 @@
 .ui.button.back-button {
   background-color: #2e2e3e !important;
   color: #89cff0 !important;
-  border: 1px solid #89cff0 !important;
+  border: 0.5px solid #89cff0 !important;
   transition: transform 0.2s, background-color 0.3s ease !important;
 }
 
@@ -80,9 +80,52 @@
 }
 
 /* Control buttons container */
+/* Control buttons styling */
 .control-buttons {
   display: flex !important;
   justify-content: center !important;
   gap: 1rem !important;
-  margin-bottom: 2rem !important;
+  margin: 2rem 0 !important;
+  padding: 0 1rem !important;
+}
+
+.control-buttons .ui.button {
+  background-color: #2e2e3e !important;
+  color: #89cff0 !important;
+  border: 1px solid #89cff0 !important;
+  padding: 0.8rem 1.5rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease-in-out !important;
+  min-width: 140px !important;
+}
+
+.control-buttons .ui.button:hover:not(:disabled) {
+  background-color: #3a3a4b !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(137, 207, 240, 0.2) !important;
+}
+
+.control-buttons .ui.button:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.control-buttons .ui.button:disabled {
+  background-color: #2e2e3e !important;
+  color: rgba(137, 207, 240, 0.5) !important;
+  border-color: rgba(137, 207, 240, 0.3) !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+.control-buttons .ui.button .icon {
+  margin-right: 0.5rem !important;
+  font-size: 1rem !important;
+  transition: transform 0.2s ease !important;
+}
+
+.control-buttons .ui.button:hover:not(:disabled) .icon {
+  transform: scale(1.1) !important;
 }

@@ -172,23 +172,6 @@ const StudyModulePage: React.FC = () => {
             <Icon name="compress" />
             Collapse All
           </Button>
-
-          <Button
-            as={Link}
-            to={`/note/${studyModuleData.noteId}/mind-map`}
-            compact
-            inverted
-            className="back-button"
-            onClick={() =>
-              console.log(
-                "Navigating to:",
-                `/note/${studyModuleData.noteId}/mind-map`
-              )
-            }
-          >
-            <Icon name="arrow left" />
-            Back to Mind Map
-          </Button>
         </div>
 
         <Accordion fluid styled className="dark-theme-accordion">
