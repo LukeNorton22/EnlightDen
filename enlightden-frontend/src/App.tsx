@@ -67,6 +67,7 @@ const App: React.FC = () => {
             path="/study-module/:studyModuleId"
             element={<StudyModulePage />}
           />
+          <Route path="/note/:noteId/mind-map" element={<MindMapPage />} />
         </Routes>
       </>
     );

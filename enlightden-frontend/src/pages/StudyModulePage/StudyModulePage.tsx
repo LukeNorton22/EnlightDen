@@ -1,53 +1,62 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Loader, Message, Container, Header } from "semantic-ui-react";
-import apiClient from "../../../src/apiClient";
+import { useParams, Link } from "react-router-dom";
+import {
+  Accordion,
+  Icon,
+  Container,
+  Header,
+  Button,
+  Loader,
+  Message,
+  SemanticCOLORS,
+} from "semantic-ui-react";
+import apiClient from "../../apiClient";
+import "./StudyModulePage.css";
 
 interface StudyModuleSubTopic {
-  id: string; // Unique identifier for the subtopic
-  title: string; // Title of the subtopic
-  content: string; // Content of the subtopic
+  id: string;
+  title: string;
+  content: string;
 }
 
 interface StudyModuleData {
-  id: string; // Unique identifier for the study module
-  name: string; // Main Topic of the Study Module (from MindMap)
-  mindMapId: string; // ID of the MindMap associated with the Study Module
-  mindMapTopicId: string; // ID of the MindMap Topic associated with the Study Module
-  subTopics: StudyModuleSubTopic[]; // Array of subtopics for the Study Module
+  id: string;
+  name: string;
+  mindMapId: string;
+  mindMapTopicId: string;
+  noteId: string;
+  subTopics: StudyModuleSubTopic[];
 }
 
 const StudyModulePage: React.FC = () => {
   const { studyModuleId } = useParams<{ studyModuleId: string }>();
-  console.log("Study Module ID from URL:", studyModuleId); // For debugging
-
   const [studyModuleData, setStudyModuleData] =
     useState<StudyModuleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeIndexes, setActiveIndexes] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log("Fetching study module for ID:", studyModuleId);
-    if (!studyModuleId) {
-      setErrorMessage("Study Module ID is missing.");
-      setLoading(false);
-      return;
-    }
-
     const fetchStudyModuleData = async () => {
+      if (!studyModuleId) {
+        setErrorMessage("Study Module ID is missing.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await apiClient.get(
           `/api/StudyTool/GetStudyModule/${studyModuleId}`
         );
         if (response.status === 200) {
-          console.log("Response Data:", response.data); // Verify API response here
+          console.log("Study Module Data:", response.data); // Debug Log
           setStudyModuleData(response.data);
-          console.log("State After Set:", response.data); // Verify state update
         } else {
           setErrorMessage("Failed to load study module.");
         }
       } catch (error) {
         setErrorMessage("An error occurred while fetching study module data.");
+        console.error("Error fetching study module:", error);
       } finally {
         setLoading(false);
       }
@@ -56,28 +65,157 @@ const StudyModulePage: React.FC = () => {
     fetchStudyModuleData();
   }, [studyModuleId]);
 
+  const handleClick = (subtopicId: string) => {
+    setActiveIndexes((prev) =>
+      prev.includes(subtopicId)
+        ? prev.filter((id) => id !== subtopicId)
+        : [...prev, subtopicId]
+    );
+  };
+
+  const handleExpandAll = () => {
+    if (studyModuleData?.subTopics) {
+      setActiveIndexes(
+        studyModuleData.subTopics.map((subtopic) => subtopic.id)
+      );
+    }
+  };
+
+  const handleCollapseAll = () => {
+    setActiveIndexes([]);
+  };
+
   if (loading) {
-    return <Loader active>Loading study module...</Loader>;
+    return (
+      <Container style={{ paddingTop: "100px" }}>
+        <Loader active>Loading study module...</Loader>
+      </Container>
+    );
   }
 
   if (errorMessage) {
-    return <Message negative>{errorMessage}</Message>;
+    return (
+      <Container style={{ paddingTop: "100px" }}>
+        <Message negative>{errorMessage}</Message>
+      </Container>
+    );
   }
 
-  return (
-    <Container style={{ paddingTop: "100px" }}>
-      <Header as="h1" textAlign="center" style={{ marginTop: "20px" }}>
-        {studyModuleData?.name || "Debug: No Study Module Name"}
-      </Header>
+  if (!studyModuleData) {
+    return (
+      <Container style={{ paddingTop: "100px" }}>
+        <Message warning>No study module data available.</Message>
+      </Container>
+    );
+  }
 
-      {/* List the subtopics */}
-      {studyModuleData?.subTopics.map((subTopic) => (
-        <div key={subTopic.id} style={{ marginTop: "20px" }}>
-          <Header as="h3">{subTopic.title}</Header>
-          <p>{subTopic.content}</p>
+  const contentStyle = {
+    backgroundColor: "#3A3A4B",
+    color: "rgba(255,255,255,.9)",
+    padding: "1rem",
+    borderRadius: "15px",
+    marginTop: "0.5rem",
+    marginBottom: "0.5rem",
+    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.5)",
+  };
+
+  const accordionTitleStyle = {
+    backgroundColor: "#2E2E3E",
+    color: "white",
+    borderBottom: "1px solid rgba(137, 207, 240, 0.1)",
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#1E1E2E",
+        color: "white",
+        paddingTop: "8rem",
+        fontFamily: "'Lato', sans-serif",
+      }}
+    >
+      <Container
+        text
+        style={{
+          paddingBottom: "2rem",
+          maxWidth: "800px !important",
+        }}
+      >
+        <Header as="h1" textAlign="center" className="study-module-title">
+          {studyModuleData.name}
+        </Header>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+            marginBottom: "2rem",
+          }}
+        >
+          <Button
+            compact
+            inverted
+            onClick={handleExpandAll}
+            disabled={activeIndexes.length === studyModuleData.subTopics.length}
+          >
+            <Icon name="expand" />
+            Expand All
+          </Button>
+          <Button
+            compact
+            inverted
+            onClick={handleCollapseAll}
+            disabled={activeIndexes.length === 0}
+          >
+            <Icon name="compress" />
+            Collapse All
+          </Button>
+
+          <Button
+            as={Link}
+            to={`/note/${studyModuleData.noteId}/mind-map`}
+            compact
+            inverted
+            className="back-button"
+            onClick={() =>
+              console.log(
+                "Navigating to:",
+                `/note/${studyModuleData.noteId}/mind-map`
+              )
+            }
+          >
+            <Icon name="arrow left" />
+            Back to Mind Map
+          </Button>
         </div>
-      ))}
-    </Container>
+
+        <Accordion fluid styled className="dark-theme-accordion">
+          {studyModuleData.subTopics.map((subtopic) => (
+            <React.Fragment key={subtopic.id}>
+              <Accordion.Title
+                active={activeIndexes.includes(subtopic.id)}
+                onClick={() => handleClick(subtopic.id)}
+                className="subtopic-title"
+                style={accordionTitleStyle}
+              >
+                <Icon name="dropdown" />
+                {subtopic.title}
+              </Accordion.Title>
+
+              <Accordion.Content
+                active={activeIndexes.includes(subtopic.id)}
+                className="subtopic-content"
+                style={contentStyle}
+              >
+                <div className="content-container">{subtopic.content}</div>
+              </Accordion.Content>
+            </React.Fragment>
+          ))}
+        </Accordion>
+      </Container>
+    </div>
   );
 };
 

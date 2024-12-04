@@ -1,0 +1,88 @@
+/* StudyModulePage.css */
+
+.dark-theme-accordion.ui.styled.accordion {
+  background-color: #1e1e2e !important;
+  border: 1px solid rgba(137, 207, 240, 0.1) !important;
+}
+
+.dark-theme-accordion .title {
+  color: #ffffff !important;
+  background-color: #2e2e3e !important;
+}
+
+.dark-theme-accordion .content {
+  background-color: #3a3a4b !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark-theme-accordion .active.title {
+  background-color: #3a3a4b !important;
+  color: #89cff0 !important;
+}
+
+.dark-theme-accordion .title:hover {
+  background-color: #3a3a4b !important;
+}
+
+.dark-theme-accordion .title .dropdown.icon {
+  color: #89cff0 !important;
+}
+
+.content-container {
+  line-height: 1.6;
+  font-family: "Lato", sans-serif;
+}
+
+.ui.loader {
+  color: #89cff0 !important;
+}
+
+.ui.message {
+  background-color: #2e2e3e !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Styling for the page header */
+.study-module-title.ui.header {
+  font-size: 26px !important;
+  margin-bottom: 2rem !important;
+  color: #89cff0 !important;
+  font-family: "Lato", sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  text-align: center !important;
+  padding: 1rem 0 !important;
+  border-bottom: 1px solid #89cff0 !important;
+  width: 100% !important;
+}
+
+/* Button styling */
+.ui.inverted.button,
+.ui.button.back-button {
+  background-color: #2e2e3e !important;
+  color: #89cff0 !important;
+  border: 1px solid #89cff0 !important;
+  transition: transform 0.2s, background-color 0.3s ease !important;
+}
+
+.ui.inverted.button:hover,
+.ui.button.back-button:hover {
+  background-color: #3a3a4b !important;
+  transform: scale(1.05);
+  color: #89cff0 !important;
+}
+
+.ui.inverted.button:disabled {
+  background-color: #2e2e3e !important;
+  color: rgba(137, 207, 240, 0.5) !important;
+  border-color: rgba(137, 207, 240, 0.5) !important;
+}
+
+/* Control buttons container */
+.control-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  margin-bottom: 2rem !important;
+}
